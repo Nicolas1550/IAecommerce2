@@ -2,24 +2,27 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useMediaQuery, Box } from "@mui/material";
+import { AnimatePresence } from "framer-motion";
+import { useMediaQuery, Box, Menu, MenuItem, Badge } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
+import AccountCircle from "@mui/icons-material/AccountCircle";
 import {
+  AuthButtonsContainer,
   CustomAppBar,
   CustomToolbar,
   Nav,
+  SignInButton,
+  SignUpButton,
   StyledIconButton,
   StyledLink,
   Title,
 } from "./navbarStyles";
-
 
 const Navbar = () => {
   const [isClient, setIsClient] = useState(false);
   const isMobile = useMediaQuery("(max-width:600px)");
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const open = Boolean(anchorEl);
-
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -29,6 +32,7 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
+  // Maneja el cierre del menú si se hace clic fuera o se cambia el tamaño de la ventana
 
   useEffect(() => {
     setIsClient(true);
@@ -72,6 +76,28 @@ const Navbar = () => {
               </Link>
             </Box>
           )}
+
+          <AuthButtonsContainer>
+            <Link
+              href="https://2f25-179-62-88-219.ngrok-free.app/auth/google"
+              passHref
+            >
+              <SignInButton>Sign In</SignInButton>
+            </Link>
+            <Link
+              href="https://2f25-179-62-88-219.ngrok-free.app/auth/google"
+              passHref
+            >
+              <SignUpButton>Register</SignUpButton>
+            </Link>
+          </AuthButtonsContainer>
+
+          <>
+            <StyledIconButton onClick={handleMenu} color="inherit">
+              <AccountCircle />
+            </StyledIconButton>
+            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}></Menu>
+          </>
         </CustomToolbar>
       </CustomAppBar>
     </Nav>
