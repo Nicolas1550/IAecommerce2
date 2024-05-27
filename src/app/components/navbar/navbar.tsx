@@ -1,4 +1,3 @@
-// Navbar.tsx
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
@@ -17,12 +16,31 @@ import {
   StyledLink,
   Title,
 } from "./navbarStyles";
+import { useAppDispatch, useAppSelector } from "@/redux/hooks";
+import { checkAuthentication } from "@/redux/features/user/userSlice";
+import DropdownMenu from "./dropdownMenu/dropdownMenu";
+import { toggleMenu } from "@/redux/features/ui/uiSlice";
+import CartIcon from "../modalCart/cartIcon";
+import { useAuthToken } from "@/app/hooks/useAuthToken";
 
 const Navbar = () => {
-  const [isClient, setIsClient] = useState(false);
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector((state) => state.user.isAuthenticated);
+  const isMenuOpen = useAppSelector((state) => state.ui.isMenuOpen);
   const isMobile = useMediaQuery("(max-width:600px)");
-  const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const [isClient, setIsClient] = useState(false);
   const open = Boolean(anchorEl);
+
+  const { logout } = useAuthToken();
+
+  useEffect(() => {
+    dispatch(checkAuthentication());
+  }, [dispatch]);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const handleMenu = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget);
@@ -32,11 +50,32 @@ const Navbar = () => {
     setAnchorEl(null);
   };
 
-  // Maneja el cierre del menú si se hace clic fuera o se cambia el tamaño de la ventana
+  const handleLogoutClick = () => {
+    logout();
+  };
 
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    const handleResize = () => {
+      if (!isMobile && isMenuOpen) {
+        dispatch(toggleMenu());
+      }
+    };
+
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isMenuOpen && anchorEl && !anchorEl.contains(event.target as Node)) {
+        dispatch(toggleMenu());
+      }
+    };
+
+    window.addEventListener("resize", handleResize);
+    document.addEventListener("mousedown", handleClickOutside);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [dispatch, isMenuOpen, isMobile, anchorEl]);
+
   return (
     <Nav
       className="page"
@@ -51,7 +90,7 @@ const Navbar = () => {
               edge="start"
               color="inherit"
               aria-label="menu"
-              // Aquí usamos una función anónima para despachar la acción
+              onClick={() => dispatch(toggleMenu())}
               sx={{ mr: 2 }}
             >
               <MenuIcon />
@@ -63,6 +102,11 @@ const Navbar = () => {
             </Title>
           </Link>
 
+          <AnimatePresence>
+            {isMobile && (
+              <DropdownMenu isOpen={isMenuOpen} toggleMenu={toggleMenu} />
+            )}
+          </AnimatePresence>
           {!isMobile && (
             <Box className="flex justify-center flex-grow">
               <Link href="/ecommerce" passHref>
@@ -76,28 +120,33 @@ const Navbar = () => {
               </Link>
             </Box>
           )}
+          {isClient && <CartIcon />}
 
-          <AuthButtonsContainer>
-            <Link
-              href="https://2f25-179-62-88-219.ngrok-free.app/auth/google"
-              passHref
-            >
-              <SignInButton>Sign In</SignInButton>
-            </Link>
-            <Link
-              href="https://2f25-179-62-88-219.ngrok-free.app/auth/google"
-              passHref
-            >
-              <SignUpButton>Register</SignUpButton>
-            </Link>
-          </AuthButtonsContainer>
-
-          <>
-            <StyledIconButton onClick={handleMenu} color="inherit">
-              <AccountCircle />
-            </StyledIconButton>
-            <Menu anchorEl={anchorEl} open={open} onClose={handleClose}></Menu>
-          </>
+          {!isAuthenticated ? (
+            <AuthButtonsContainer>
+              <Link
+                href="https://32cb-179-62-88-219.ngrok-free.app/auth/google"
+                passHref
+              >
+                <SignInButton>Sign In</SignInButton>
+              </Link>
+              <Link
+                href="https://32cb-179-62-88-219.ngrok-free.app/auth/google"
+                passHref
+              >
+                <SignUpButton>Register</SignUpButton>
+              </Link>
+            </AuthButtonsContainer>
+          ) : (
+            <>
+              <StyledIconButton onClick={handleMenu} color="inherit">
+                <AccountCircle />
+              </StyledIconButton>
+              <Menu anchorEl={anchorEl} open={open} onClose={handleClose}>
+                <MenuItem onClick={handleLogoutClick}>Log Out</MenuItem>
+              </Menu>
+            </>
+          )}
         </CustomToolbar>
       </CustomAppBar>
     </Nav>
