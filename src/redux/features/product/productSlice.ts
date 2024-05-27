@@ -1,9 +1,9 @@
 import { createSlice, PayloadAction, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import { RootState } from "../../store";
-import { API_BASE_URL } from "../../../config";
-import { getToken } from "@/app/utils/utils";
 import { Product } from "../cart/cartSlice";
+import { API_BASE_URL } from "@/config";
+import { getToken } from "@/app/utils/utils";
 
 interface ProductState {
   visibleProducts: Product[];
